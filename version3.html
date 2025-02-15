@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación de Llamadas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .seccion {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            font-size: 15px;
+            margin: 0 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2980b9;
+            color: #2c3e50;
+        }
+
+        .descripcion-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 10px;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .botones-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        .punto-button {
+            padding: 18px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-size: 13px;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .punto-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 8px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .botones-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .punto-button {
+                padding: 15px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="seccion">
+    <h2>Descripción de la Llamada</h2>
+    <textarea id="descripcionLlamada" class="descripcion-textarea" 
+              placeholder="Redacta aquí los detalles de la llamada..."></textarea>
+</div>
+
+<div class="seccion">
+    <h2>Puntos de Evaluación</h2>
+    <div class="botones-container" id="listaPrincipal"></div>
+</div>
+
+<div class="acciones">
+    <button onclick="reiniciarFormulario()">Reiniciar</button>
+    <button onclick="exportarDatos()">Exportar</button>
+</div>
+
+<script>
+const puntos = [
+    {id: '1.1', texto: '1.1. Escucha atentamente al cliente en su comunicación verbal y no verbal'},
+    {id: '1.2', texto: '1.2. Diagnostica la necesidad real del cliente'},
+    {id: '1.3', texto: '1.3. Si no es clara la necesidad, reconfirma parafraseando y/o realizando una pregunta de precisión'},
+    {id: '1.4', texto: '1.4. Evita hacer sentir responsable al cliente del problema que pudo haber ocasionado en el servicio'},
+    {id: '1.5', texto: '1.5. Valida  titularidad'},
+    {id: '1.6', texto: '1.6. Brinda la información adecuada de acuerdo con la necesidad del cliente'},
+    {id: '1.7', texto: '1.7. Realiza pasos necesarios para descartar y encontrar una solución a la necesidad del cliente'},
+    {id: '1.8', texto: '1.8. Registra la acción realizada de acuerdo a la necesidad real de la atención'},
+    {id: '1.9', texto: '1.9. Brinda código de atención'},
+    {id: '1.10', texto: '1.10. Consulta al cliente si entendió la gestión o explicación brindada'},
+    {id: '1.11', texto: '1.11. Acompaña al cliente en toda la atención'},
+    {id: '2.2', texto: '2.2. Realizas recomendación comercial'},
+    {id: '3.1', texto: '3.1. No cuestiona la identidad del cliente/usuario si la voz no coincide con el género de sus datos'},
+    {id: '3.2', texto: '3.2. Se presenta de forma correcta'},
+    {id: '3.3', texto: '3.3. Personaliza la atención usando el nombre del cliente y tratándolo de usted'},
+    {id: '3.4', texto: '3.4. Se comunica de forma natural'},
+    {id: '3.5', texto: '3.5. Atiende acorde con la emoción del cliente'},
+    {id: '3.6', texto: '3.6. Las frases usadas para generar vínculo son de forma sincera y genuina acorde con la necesidad real y emoción del cliente'},
+    {id: '3.7', texto: '3.7. Transforma la emoción del cliente'},
+    {id: '3.8', texto: '3.8. Mantiene la calma'},
+    {id: '3.9', texto: '3.9. Informa al cliente que será derivado a una encuesta'},
+    {id: '3.10', texto: '3.10. Brinda una despedida de manera fluida y cordial'}
+];
+
+let comentarios = {};
+
+function crearListaPrincipal() {
+    const contenedor = document.getElementById('listaPrincipal');
+    contenedor.innerHTML = puntos.map(punto => `
+        <button class="punto-button" onclick="agregarComentario('${punto.id}')">
+            ${punto.texto}
+        </button>
+    `).join('');
+}
+
+function agregarComentario(puntoId) {
+    const comentario = prompt(`Ingrese comentario para el punto ${puntoId}:`);
+    if (comentario) {
+        comentarios[puntoId] = comentario;
+    }
+}
+
+function reiniciarFormulario() {
+    document.getElementById('descripcionLlamada').value = '';
+    comentarios = {};
+    alert('Formulario reiniciado');
+}
+
+function exportarDatos() {
+    const descripcion = document.getElementById('descripcionLlamada').value;
+    const comentariosExportar = Object.entries(comentarios).map(([punto, comentario]) => 
+        `• ${punto}: ${comentario}`
+    ).join('\n');
+    
+    const contenido = `DESCRIPCIÓN DE LA LLAMADA:\n\n${descripcion}\n\n\nCOMENTARIOS POR PUNTO:\n\n${comentariosExportar}`;
+    
+    const blob = new Blob([contenido], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Evaluacion_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+window.onload = crearListaPrincipal;
+</script>
+
+</body>
+</html>
